@@ -1,0 +1,37 @@
+logistic <-
+function(v, s = 1){
+  1/(1+exp(-v*s))
+}
+
+
+logistic <-
+function(v, s = 1){
+  1/(1+exp(-v*s))
+}
+
+library(Rcpp)
+
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+
+cppFunction('
+  NumericVector Clogistic(NumericVector v, double s = 1) {
+    return 1/(1+exp(-v*s));
+  }
+')
+
+x <- rexp(1000000)
+a = logistic(x)
+b = Clogistic(x)
+
+
+all.equal(a, b)
+
+library(microbenchmark)
+microbenchmark(
+  a = logistic(x),
+  b = Clogistic(x)
+)  
+
