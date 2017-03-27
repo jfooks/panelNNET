@@ -1,14 +1,13 @@
 Package: panelNNET
 Type: Package
-Title: Semiparametric panel data models using neural networks
+Title: What the Package Does Using Title Case
 Version: 1.0
-Date: 2017-3-24
-Author: Andrew Crane-Droesch
-Maintainer: Andrew Crane-Droesch <andrew.crane-droesch@ers.usda.gov>
-Description: Fits fixed-effects models for panel data, in which some terms may enter linearly and others may enter non-parametrically.  The nonparametric terms are represented by feed-forward neural networks, with arbitrarily-many hidden layers and hidden units per layer.  Disclaimer:  this code is that of the author and should not be attributed to the Economic Research Service or USDA.
-License: GPL-3
-Depends: lfe, foreach, MASS, numDeriv
-LinkingTo: Rcpp
-Imports: Rcpp
-NeedsCompilation: yes
-Packaged: 2016-11-25 22:58:18 UTC; andrew
+Date: 2017-03-24
+Author: Your Name
+Maintainer: Your Name <your@email.com>
+Description: More details about what the package does. See
+        <http://http://cran.r-project.org/doc/manuals/r-release/R-exts.html#The-DESCRIPTION-file>
+        for details on how to write this part.
+License: GPL (>= 2)
+Imports: Rcpp (>= 0.12.10)
+LinkingTo: Rcpp, RcppArmadillo

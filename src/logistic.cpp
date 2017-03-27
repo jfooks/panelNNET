@@ -1,9 +1,15 @@
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
 using namespace Rcpp;
 
+// [[Rcpp::depends(RcppArmadillo)]]
+using namespace Rcpp;
+using namespace arma;
 // [[Rcpp::export]]
 
-NumericVector logistic(NumericVector v, double s = 1) {
+cppFunction('arma::mat logistic(arma::mat v, double s = 1) {
   return 1/(1+exp(-v*s));
 }
+', depends="RcppArmadillo")
+
+
 

@@ -34,7 +34,7 @@ function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parli
 #bias_hlayers = TRUE
 #RMSprop = TRUE
 #convtol = 1e-8
-#activation = 'tanh'
+#activation = 'logistic'
 #doscale = TRUE
 #inference = FALSE
 #batchsize = nrow(X)
