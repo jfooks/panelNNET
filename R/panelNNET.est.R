@@ -3,16 +3,16 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
                           , start_LR, activation, doscale, treatment, batchsize, maxstopcounter
                           , OLStrick, initialization, dropout_hidden
                           , dropout_input, ...){
-  
-  
+
+
   
   #Define internal functions
   
   getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
     #print((pl))
     #pl <- parlist
-    #skel = attr(pl, 'skeleton')
-    #hlay <- hlayers
+    # skel = attr(pl, 'skeleton')
+    # hlay <- hlayers
     plist <- relist(pl, skel)
     #Update hidden layers
     #with_no_parameters
@@ -34,6 +34,11 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta)
     }
     
+    if (is.null(treatment) & (is.null(param)) & (is.null(fe_var))){
+      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta)
+    }
+    
+    
     #####
     #with_beta_parameters
     if ((!is.null(fe_var)) & (!is.null(param))){
@@ -43,14 +48,21 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       ))
       if (!is.null(treatment)){
         hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
-        yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + fe + plist$beta
-      } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + fe + plist$beta}
+        yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + fe + plist$beta_param
+      } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + fe + plist$beta_param}
     }
     
     if ((!is.null(treatment)) & (!is.null(param)) & (is.null(fe_var))){
       hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
-      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + plist$beta_para
+      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + plist$beta_param
     }
+    
+    if (is.null(treatment) & (!is.null(param)) & (is.null(fe_var))){
+      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta)
+    }
+    
+    
+    
     return(yhat)
   }
   
@@ -252,6 +264,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
   grads <- calc_grads(parlist, hlayers, yhat, droplist = NULL, dropinp = NULL)
   #Initialize updates
   updates <- lapply(parlist, function(x){x*0})
+  
   #initialize G2 term for RMSprop
   if (RMSprop == TRUE){
     #Prior gradients are zero at first iteration...
@@ -380,7 +393,8 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       #Update hidden layers
       hlayers <- calc_hlayers(parlist)
       #OLS trick!
-      if ((OLStrick == TRUE)|(!is.null(treatment))) {
+      #mid
+      if (OLStrick == TRUE) {
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
                                      , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
         )

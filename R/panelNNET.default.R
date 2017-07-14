@@ -1,3 +1,4 @@
+
 panelNNET.default <-
   function(y, X, hidden_units, fe_var
            , maxit = 100, lam = 0, time_var = NULL, param = NULL
@@ -20,3 +21,6 @@ panelNNET.default <-
     class(out) <- 'panelNNET'
     out
   }
+
+
+
