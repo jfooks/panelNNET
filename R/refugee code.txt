@@ -1,18 +1,18 @@
 panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist
-                          , verbose, para_plot, report_interval, gravity, convtol, bias_hlayers, RMSprop
-                          , start_LR, activation, doscale, treatment, batchsize, maxstopcounter
-                          , OLStrick, initialization, dropout_hidden
-                          , dropout_input, ...){
+         , verbose, para_plot, report_interval, gravity, convtol, bias_hlayers, RMSprop
+         , start_LR, activation, doscale, treatment, batchsize, maxstopcounter
+         , OLStrick, initialization, dropout_hidden
+         , dropout_input, ...){
+
   
   
+#Define internal functions
   
-  #Define internal functions
-  
-  getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
-    #print((pl))
-    #pl <- parlist
-    #skel = attr(pl, 'skeleton')
-    #hlay <- hlayers
+getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
+  #print((pl))
+  #pl <- parlist
+  #skel = attr(pl, 'skeleton')
+  #hlay <- hlayers
     plist <- relist(pl, skel)
     #Update hidden layers
     #with_no_parameters
@@ -21,17 +21,17 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     if ((!is.null(fe_var)) & (is.null(param))){
       Zdm <- demeanlist(hlay[[length(hlay)]], list(fe_var))
       fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
-        plist$beta_treatment, plist$beta
+          plist$beta_treatment, plist$beta
       ))
       if (!is.null(treatment)){
         hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
         yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta) + fe
       } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta_treatment, plist$beta) + fe}
     }
-    
+
     if (!is.null(treatment) & (is.null(param)) & (is.null(fe_var))){
-      hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
-      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta)
+        hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
+        yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta)
     }
     
     #####
@@ -45,18 +45,18 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
         hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
         yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + fe + plist$beta
       } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + fe + plist$beta}
-    }
-    
+     }
+
     if ((!is.null(treatment)) & (!is.null(param)) & (is.null(fe_var))){
       hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
       yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + plist$beta_para
     }
     return(yhat)
-  }
-  
-  
-  
-  
+}
+    
+
+
+
   lossfun <- function(pl, skel, lam, parapen){
     yhat <- getYhat(pl, skel)
     mse <- mean((y-yhat)^2)
@@ -78,7 +78,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
         hlayers[[i]] <- activ(D %*% parlist[[i]])
       }
     }
-    
+  
     #i_is_used_globally
     #semi_p
     colnames(hlayers[[i]]) <- paste0('nodes',1:ncol(hlayers[[i]]))
@@ -95,7 +95,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     }
     return(hlayers)
   }
-  
+
   
   
   
@@ -129,8 +129,8 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     } else {
       grads[[length(grads)]] <- (grads[[length(grads)]])
     }
-    
-    for (i in (nlayers):1){
+
+        for (i in (nlayers):1){
       if (i == nlayers){outer_param = as.matrix(c(plist$beta))} else {outer_param = plist[[i+1]]}
       if (i == 1){lay = CB(Xd)} else {lay= CB(hlay[[i-1]])}
       if (bias_hlayers == TRUE){
@@ -141,6 +141,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     }
     return(grads)
   }
+
   
   
   
@@ -148,8 +149,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
   
   
   
-  
-  
+
   ###########################
   #start fitting
   if (doscale == TRUE){
@@ -174,7 +174,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     activ <- lrelu
     activ_prime <- lrelu_prime
   }
-  
+
   nlayers <- length(hidden_units)
   #get starting weights, either randomly or from a specified parlist
   if (is.null(parlist)){#random starting weights
@@ -245,8 +245,8 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
   yhat <- getYhat(pl, hlay = hlayers)
   mse <- mseold <- mean((y-yhat)^2)
   loss <- mse + lam*sum(c(parlist$beta_param*parapen
-                          , 0*parlist$beta_treatment, parlist$beta
-                          , unlist(parlist[!grepl('beta', names(parlist))]))^2
+    , 0*parlist$beta_treatment, parlist$beta
+    , unlist(parlist[!grepl('beta', names(parlist))]))^2
   )
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
   grads <- calc_grads(parlist, hlayers, yhat, droplist = NULL, dropinp = NULL)
@@ -291,8 +291,8 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
   #start iterating
   while(iter < maxit & stopcounter < maxstopcounter){
     oldpar <- list(parlist=parlist, hlayers=hlayers, grads=grads
-                   , yhat = yhat, mse = mse, mseold = mseold, loss = loss, updates = updates, G2 = G2
-                   , msevec = msevec, lossvec = lossvec)
+      , yhat = yhat, mse = mse, mseold = mseold, loss = loss, updates = updates, G2 = G2
+      , msevec = msevec, lossvec = lossvec)
     #Start epoch
     #Assign batches
     batchid <- sample(1:nrow(X)%/%batchsize +1)
@@ -300,7 +300,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)), replace = TRUE)
     }
     for (bat in 1:max(batchid)) {
-      # bat = 1
+# bat = 1
       curBat <- which(batchid == bat)
       hlay <- hlayers#hlay may have experienced dropout, as distinct from hlayers
       #if using dropout, generate a droplist
@@ -326,7 +326,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       } else {Xd <- X; droplist = NULL}
       #Get updated gradients
       grads <- calc_grads(plist = parlist, hlay = hlay
-                          , yhat = yhat[curBat], curBat = curBat, droplist = droplist, dropinp = dropinp)
+        , yhat = yhat[curBat], curBat = curBat, droplist = droplist, dropinp = dropinp)
       #Pad the gradients with zeros to scale it back to the original size
       if (dropout_hidden < 1){
         for (i in 1:(length(grads)-1)){
@@ -340,14 +340,14 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
         newG2 <- foreach(i = 1:(length(hlayers)+1)) %do% {
           if (i == 1){D <- X[curBat,]} else {D <- hlayers[[i-1]][curBat,]}
           if (bias_hlayers == TRUE & i != length(hlayers)+1){D <- cbind(1, D)}
-          .1*(t(D) %*% grads[[i]])^2
+            .1*(t(D) %*% grads[[i]])^2
         }
         oldG2 <- lapply(G2, function(x){.9*x})
         G2 <- mapply('+', newG2, oldG2)
         uB <- LR/sqrt(G2[[length(G2)]]+1e-10) *
           t(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,]) + 
           LR*as.matrix(2*lam*c(parlist$beta_param*parapen#penalty/weight decay...
-                               , 0*parlist$beta_treatment, parlist$beta)
+            , 0*parlist$beta_treatment, parlist$beta)
           )#Treatment is always unpenalized
         updates$beta_param <- uB[1:length(parlist$beta_param)]
         updates$beta <- uB[grepl('nodes', rownames(uB))]
@@ -361,7 +361,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
         }
       } else { #if RMSprop == FALSE
         uB <- LR * t(t(grads[[length(grads)]]) %*% hlayers[[length(hlayers)]][curBat,] +
-                       2*lam*c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta,))
+          2*lam*c(parlist$beta_param*parapen, 0*parlist$beta_treatment, parlist$beta,))
         updates$beta_param <- uB[1:length(parlist$beta_param)]
         updates$beta <- uB[grepl('nodes', rownames(uB))]
         if (!is.null(treatment)){
@@ -373,7 +373,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
           updates[[i]] <- t(LR * t(grads[[i]]) %*% lay + 2 * lam * t(parlist[[i]]))
         }
       }
-      
+
       #Update parameters from update list
       parlist <- as.relistable(mapply('-', parlist, updates))
       pl <- unlist(parlist)
@@ -382,25 +382,25 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       #OLS trick!
       if ((OLStrick == TRUE)|(!is.null(treatment))) {
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
-                                     , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
+          , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
         )
         pl <- unlist(parlist)
       }
-      
+
       #update yhat
       yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = hlayers)
       mse <- mean((y-yhat)^2)
       msevec <- append(msevec, mse)
       loss <- mse + lam*sum(c(parlist$beta_param*parapen
-                              , 0*parlist$beta_treatment, parlist$beta
-                              , unlist(parlist[!grepl('beta', names(parlist))]))^2)
+        , 0*parlist$beta_treatment, parlist$beta
+        , unlist(parlist[!grepl('beta', names(parlist))]))^2)
       lossvec <- append(lossvec, loss)
     }
     #Finished epoch.  Assess whether MSE has increased and revert if so
     mse <- mean((y-yhat)^2)
     loss <- mse + lam*sum(c(parlist$beta_param*parapen
-                            , 0*parlist$beta_treatment, parlist$beta
-                            , unlist(parlist[!grepl('beta', names(parlist))]))^2
+      , 0*parlist$beta_treatment, parlist$beta
+      , unlist(parlist[!grepl('beta', names(parlist))]))^2
     )
     #If loss increases...
     if (oldpar$loss <= loss){
@@ -431,7 +431,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       }
       if (verbose == TRUE & iter %% report_interval == 0){
         writeLines(paste0(
-          "*******************************************\n"
+            "*******************************************\n"
           , 'Lambda = ',lam, "\n"
           , "Hidden units -> ",paste(hidden_units, collapse = ' '), "\n"
           , " Batch size is ", batchsize, " \n"
@@ -466,16 +466,16 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
               q <- quantile(x, probs = seq(.05, .95, by = .1))
               mu = mean(x)
               para_plot_list[[lay]] <- cbind(para_plot_list[[lay]], c(q, mu = mu))
-              
+      
               plot(para_plot_list[[lay]]['mu',], ylim = range(para_plot_list[[lay]])
-                   , type = 'l', col = 'red', main = names(parlist)[[lay]], ylab = 'weights'
+                , type = 'l', col = 'red', main = names(parlist)[[lay]], ylab = 'weights'
               )
               apply(para_plot_list[[lay]][-nrow(para_plot_list[[lay]]),], 1, lines, col = 'black')
               abline(h = 0, lty = 2)
             } else {
               para_plot_list[[lay]] <- cbind(para_plot_list[[lay]], x)
               plot(apply(para_plot_list[[lay]], 2, mean), ylim = range(para_plot_list[[lay]])
-                   , type = 'l', col = 'red', main = names(parlist)[[lay]], ylab = 'weights'
+                , type = 'l', col = 'red', main = names(parlist)[[lay]], ylab = 'weights'
               )
               apply(para_plot_list[[lay]], 1, lines, col = 'grey')
               abline(h = 0, lty = 2)
@@ -486,7 +486,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     }
     iter <- iter+1
   } #close the while loop
-  
+
   
   
   #If trained with dropput, weight the layers by expectations
@@ -501,7 +501,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     parlist$beta <- parlist$beta * dropout_hidden
     if (OLStrick == TRUE){
       parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
-                                   , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
+        , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
       )
     }
     #redo the hidden layers based on the new parlist
@@ -514,16 +514,43 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
   } else {
     Zdm <- demeanlist(hlayers[[length(hlayers)]], list(fe_var))
     fe <- (y-ydm) - as.matrix(hlayers[[length(hlayers)]]-Zdm) %*% as.matrix(c(
-      parlist$beta_param, parlist$beta_treatment
+        parlist$beta_param, parlist$beta_treatment
       , parlist$beta
     ))
-    fe_output <- data.frame(fe_var, fe)
+  fe_output <- data.frame(fe_var, fe)
   }
   output <- list(yhat = yhat, parlist = parlist, hidden_layers = hlayers
-                 , fe = fe_output, converged = conv, mse = mse, loss = loss, lam = lam, time_var = time_var
-                 , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
-                 , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
-                 , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
-                 , batchsize = batchsize, initialization = initialization)
+    , fe = fe_output, converged = conv, mse = mse, loss = loss, lam = lam, time_var = time_var
+    , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
+    , used_bias = bias_hlayers, final_improvement = D, msevec = msevec, RMSprop = RMSprop, convtol = convtol
+    , grads = grads, activation = activation, parapen = parapen, doscale = doscale, treatment = treatment
+    , batchsize = batchsize, initialization = initialization)
   return(output)
-  }
+}
+
+
+panelNNET.default <-
+function(y, X, hidden_units, fe_var
+  , maxit = 100, lam = 0, time_var = NULL, param = NULL
+  , parapen = rep(0, ncol(param)), parlist = NULL, verbose = FALSE
+  , para_plot = FALSE, report_interval = 100
+  , gravity = 1.01, convtol = 1e-8, bias_hlayers = TRUE, RMSprop = TRUE, start_LR = .01
+  , activation = 'tanh', doscale = TRUE
+  , treatment = NULL, batchsize = nrow(X)
+  , maxstopcounter = 10, OLStrick = FALSE, initialization = 'enforce_normalization'
+  , dropout_hidden = 1, dropout_input = 1, ...)
+{
+  out <- panelNNET.est(y, X, hidden_units, fe_var, maxit, lam
+    , time_var, param, parapen, parlist, verbose, para_plot
+    , report_interval, gravity, convtol, bias_hlayers, RMSprop
+    , start_LR, activation, doscale 
+    , treatment, batchsize, maxstopcounter
+    , OLStrick, initialization, dropout_hidden, dropout_input
+  )
+  out$call = match.call()
+  class(out) <- 'panelNNET'
+  out
+}
+
+
+
