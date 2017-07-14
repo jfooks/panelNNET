@@ -2,8 +2,6 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
                           , verbose, para_plot, report_interval, gravity, convtol, bias_hlayers, RMSprop
                           , start_LR, activation, doscale, treatment, batchsize, maxstopcounter
                           , OLStrick, initialization, dropout_hidden
-                          , dropout_input, ...){
-
 
   
   #Define internal functions
@@ -261,7 +259,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
                           , unlist(parlist[!grepl('beta', names(parlist))]))^2
   )
   #Calculate gradients.  These aren't the actual gradients, but become the gradients when multiplied by their respective layer.
-  grads <- calc_grads(parlist, hlayers, yhat, droplist = NULL, dropinp = NULL)
+  grads <- calc_grads(parlist, hlayers, yhat, droplist = NULL, dropinp = NULL, treatment = treatment)
   #Initialize updates
   updates <- lapply(parlist, function(x){x*0})
   
@@ -339,7 +337,8 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       } else {Xd <- X; droplist = NULL}
       #Get updated gradients
       grads <- calc_grads(plist = parlist, hlay = hlay
-                          , yhat = yhat[curBat], curBat = curBat, droplist = droplist, dropinp = dropinp)
+                          , yhat = yhat[curBat], curBat = curBat
+                          , droplist = droplist, dropinp = dropinp, treatment = treatment)
       #Pad the gradients with zeros to scale it back to the original size
       if (dropout_hidden < 1){
         for (i in 1:(length(grads)-1)){
