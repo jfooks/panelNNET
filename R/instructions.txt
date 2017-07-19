@@ -1,0 +1,7 @@
+
+
+
+1.  Under what conditions besides lam = 0 will constraint != b^tb?
+	This can probably be solved by rethinking how the OLStrick function operates.  Instead of mnimizing (btb - constraint)^2, rather minimize MSE st constraint, over beta
+	This can be done.  Make it go fast.
+2.  Does HTE work when lam = 0, but complexity is resticted by number of layers and nodes, rather than lambda?

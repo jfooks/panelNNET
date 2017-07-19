@@ -1,7 +1,7 @@
 panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist
                           , verbose, para_plot, report_interval, gravity, convtol, bias_hlayers, RMSprop
                           , start_LR, activation, doscale, treatment, batchsize, maxstopcounter
-                          , OLStrick, initialization, dropout_hidden, dropout_input){
+                          , OLStrick, initialization, dropout_hidden, dropout_input, OLStrick_iter){
 
   
   #Define internal functions
@@ -399,6 +399,13 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
         )
         pl <- unlist(parlist)
       }
+      #Ols_trick_every_#_iterations
+      if (OLStrick == TRUE & iter %% OLStrick_iter == 0){
+        parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
+                                     , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
+        )
+        pl <- unlist(parlist)
+      }
       
       #update yhat
       yhat <- getYhat(pl, attr(pl, 'skeleton'), hlay = hlayers)
@@ -502,7 +509,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
   
   
   
-  #If trained with dropput, weight the layers by expectations
+  #If trained with droput, weight the layers by expectations
   if(dropout_hidden<1){
     for (i in nlayers:1){
       if (i == 1){
