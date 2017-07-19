@@ -1,7 +1,7 @@
 panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist
                           , verbose, para_plot, report_interval, gravity, convtol, bias_hlayers, RMSprop
                           , start_LR, activation, doscale, treatment, batchsize, maxstopcounter
-                          , OLStrick, initialization, dropout_hidden, dropout_input, OLStrick_iter){
+                          , OLStrick, OLStrick_iter,initialization, dropout_hidden, dropout_input){
 
   
   #Define internal functions
