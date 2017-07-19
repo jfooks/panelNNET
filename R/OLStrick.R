@@ -1,14 +1,14 @@
 
 
 OLStrick_function <- function(parlist, hidden_layers, y, fe_var, lam, parapen, treatment){
-parlist <- pnn$parlist
-hidden_layers <- pnn$hidden_layers
-y = pnn$y
-fe_var <- pnn$fe_var
-lam <- pnn$lam
-parapen <- pnn$parapen
-treatment = pnn$treatment
-
+# parlist <- pnn$parlist
+# hidden_layers <- pnn$hidden_layers
+# y = pnn$y
+# fe_var <- pnn$fe_var
+# lam <- pnn$lam
+# parapen <- pnn$parapen
+# treatment = pnn$treatment
+# mse <- pnn$mse
 
   constraint <- sum(c(parlist$beta_param*parapen, parlist$beta)^2)
   #getting implicit regressors depending on whether regression is panel
@@ -20,7 +20,7 @@ treatment = pnn$treatment
       Zdm <- hidden_layers[[length(hidden_layers)]]
       targ <- y
     }    
-  } else {#HTE case
+  } else {#HTE case with fe's
     if (!is.null(fe_var)){
       V <- hidden_layers[[length(hidden_layers)]]
       ints <- sweep(V[,grepl('nodes', colnames(V))], MARGIN = 1, STATS = treatment, "*")
@@ -28,7 +28,7 @@ treatment = pnn$treatment
       dmat <- data.frame(V, ints) 
       Zdm <- as.matrix(demeanlist(dmat, list(fe_var)))
       targ <- demeanlist(y, list(fe_var))      
-    } else {
+    } else {#HTE case 
       V <- hidden_layers[[length(hidden_layers)]]
       ints <- sweep(V[,grepl('nodes', colnames(V))], MARGIN = 1, STATS = treatment, "*")
       colnames(ints) <- paste0(colnames(ints),"_int")
@@ -63,7 +63,7 @@ treatment = pnn$treatment
       (crossprod(bi*D) - constraint)^2
     }
     #optimize it
-    o <- optim(par = lam, f = f, method = 'Brent', lower = lam, upper = 1e9)
+    o <- optim(par = lam, fn = f, method = 'Brent', lower = lam, upper = 1e9)#fn=function_to_be_minimized
     #new_lambda
     newlam <- o$par
   } else {
@@ -78,8 +78,8 @@ treatment = pnn$treatment
   return(parlist)
 }
 
-pnn$mse
-mean((targ - Zdm %*% b)^2)
+# pnn$mse
+# mean((targ - Zdm %*% b)^2)
 
 #mean((targ - Zdm %*% c(parlist$beta_param, parlist$beta))^2)
 #mean((targ - Zdm %*% b)^2)
