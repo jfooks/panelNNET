@@ -43,7 +43,6 @@ OLStrick_function <- function(parlist, hidden_layers, y, fe_var, lam, parapen, t
   D <- rep(1, ncol(Zdm))
   if (is.null(fe_var)){
     pp <- c(0, parapen) #never penalize the intercept
-    Zdm <- dmat
   } else {
     pp <- parapen #parapen
   }
