@@ -64,16 +64,15 @@ OLStrick_function <- function(parlist, hidden_layers, y, fe_var, lam, parapen, t
   #     return(bi1)
   #   }
 
-  
   if (lam != 0){
     #implicit_lambda_function
     f <- function(lam){
       #minimize _mse_given_constraint_over_betas_and_lam
       bi <- glmnet(y = targ, x = Zdm, lambda = lam, alpha = 0, intercept = FALSE, penalty.factor = D, standardize = FALSE)
       bi <- as.matrix(coef(bi))[-1,]
-      bi <- mean((targ - Zdm %*% bi)^2) # targ_==_y
+      bi1 <- mean((targ - Zdm %*% bi)^2) # targ_==_y
       #mse_1 <- mean((targ - Zdm %*% c(parlist$beta_param, parlist$beta))^2 
-      return(bi)
+      return(bi1)
     }
 
     
@@ -82,7 +81,7 @@ OLStrick_function <- function(parlist, hidden_layers, y, fe_var, lam, parapen, t
     #new_lambda
     newlam <- o$par
   } else {
-    newlam <- 0
+    newlam <- 0 # lam == 0
   }
   
   #New_top_level_params
