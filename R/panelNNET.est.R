@@ -5,18 +5,21 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
 
   
   #Define internal functions
-  
+              
   getYhat <- function(pl, skel = attr(pl, 'skeleton'), hlay = NULL){ 
-    #print((pl))
-    #pl <- parlist
+    # print((pl))
+    # pl <- parlist
     # skel = attr(pl, 'skeleton')
-    # hlay <- hlayers
+    hlay <- hlayers
     plist <- relist(pl, skel)
     #Update hidden layers
+    
+    ###
     #with_no_parameters
     if (is.null(hlay)){hlay <- calc_hlayers(plist)}
     #update yhat
     if ((!is.null(fe_var)) & (is.null(param))){
+      plist$beta <- plist$beta[1:(tail(hidden_units, n=1))]
       Zdm <- demeanlist(hlay[[length(hlay)]], list(fe_var))
       fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
         plist$beta_treatment, plist$beta
@@ -24,7 +27,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       if (!is.null(treatment)){
         hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
         yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta) + fe
-      } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta_treatment, plist$beta) + fe}
+      } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta) + fe}
     }
     
     if (!is.null(treatment) & (is.null(param)) & (is.null(fe_var))){
@@ -33,33 +36,53 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     }
     
     if (is.null(treatment) & (is.null(param)) & (is.null(fe_var))){
-      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta)
+      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta)
     }
     
     
     #####
     #with_beta_parameters
-    if ((!is.null(fe_var)) & (!is.null(param))){
+    if ((!is.null(fe_var)) & (!is.null(param)) & (OLStrick == FALSE)){
       Zdm <- demeanlist(hlay[[length(hlay)]], list(fe_var))
       fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
-        plist$beta_treatment, plist$beta_param, plist$beta
-      ))
+        plist$beta_treatment, plist$beta_param, plist$beta)
+      )
       if (!is.null(treatment)){
         hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
         yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + fe + plist$beta_param
-      } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + fe + plist$beta_param}
+      } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta_param, plist$beta) + fe + plist$beta_param}
     }
     
-    if ((!is.null(treatment)) & (!is.null(param)) & (is.null(fe_var))){
+    if ((!is.null(treatment)) & (!is.null(param)) & (is.null(fe_var)) & (OLStrick == FALSE)){
       hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
       yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + plist$beta_param
     }
     
-    if (is.null(treatment) & (!is.null(param)) & (is.null(fe_var))){
-      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta)
+    if ((is.null(treatment) & (!is.null(param)) & (is.null(fe_var)) & (OLStrick == FALSE))){
+      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + plist$beta_param
     }
     
     
+    #with_OLS_trick
+    if ((!is.null(fe_var)) & (!is.null(param)) & (OLStrick == TRUE)){
+      Zdm <- demeanlist(hlay[[length(hlay)]], list(fe_var))
+      fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
+        plist$beta_treatment, plist$beta_param, plist$beta[1:(tail(hidden_units, n=1))])
+      )
+      if (!is.null(treatment)){
+        hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
+        yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta[1:(tail(hidden_units, n=1))]) + plist$beta_param + fe
+      } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta_treatment, plist$beta_param, plist$beta[1:(tail(hidden_units, n=1))])+ plist$beta_param + fe} 
+    }
+    
+    if ((!is.null(treatment)) & (!is.null(param)) & (is.null(fe_var)) & (OLStrick == TRUE)){
+      hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
+      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta_param, plist$beta[1:(tail(hidden_units, n=1))]) + plist$beta_param
+    }
+    
+    if ((is.null(treatment)) & (!is.null(param)) & (is.null(fe_var)) & (OLStrick == TRUE)){ 
+      yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_param, plist$beta[1:(tail(hidden_units, n=1))]) + plist$beta_param
+    }
     
     return(yhat)
   }
@@ -250,7 +273,6 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
   
   
   
-  ##Get_running_up_to_here
   #start setup
   yhat <- getYhat(pl, hlay = hlayers)
   mse <- mseold <- mean((y-yhat)^2)
@@ -311,7 +333,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       batchid[batchid == max(batchid)] <- sample(1:(max(batchid) - 1), min(table(batchid)), replace = TRUE)
     }
     for (bat in 1:max(batchid)) {
-      # bat = 1
+      #bat = 1
       curBat <- which(batchid == bat)
       hlay <- hlayers#hlay may have experienced dropout, as distinct from hlayers
       #if using dropout, generate a droplist
@@ -393,7 +415,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       hlayers <- calc_hlayers(parlist)
       #OLS trick!
       #mid
-      if (OLStrick == TRUE) {
+      if (OLStrick == TRUE & iter %% OLStrick_iter == 1000000) {
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
                                      , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
         )

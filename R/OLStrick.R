@@ -47,22 +47,38 @@ OLStrick_function <- function(parlist, hidden_layers, y, fe_var, lam, parapen, t
     pp <- parapen #parapen
   }
   D[1:length(pp)] <- D[1:length(pp)]*pp #incorporate parapen into diagonal of covmat
-  #set to zero -> treatment columns and main effects of HTE models
+  #set to zero -> treatment columns and main effects of HTE models #treatments and ME's are not penalized 
+  #onlt_penalize_the_interacted_nodes
   if (!is.null(treatment)){
     tozero <- grepl('treatment', colnames(Zdm)) | (grepl('nodes', colnames(Zdm)) & !grepl('int', colnames(Zdm)))
     D[tozero] <- 0
   }
   
+
+  # if (lam != 0){
+  #   #implicit_lambda_function
+  #   f <- function(lam){
+  #     bi <- glmnet(y = targ, x = Zdm, lambda = lam, alpha = 0, intercept = FALSE, penalty.factor = D, standardize = FALSE)
+  #     bi <- as.matrix(coef(bi))[-1,]
+  #     bi1 <- (crossprod(bi*D) - constraint)^2
+  #     return(bi1)
+  #   }
+
   
   if (lam != 0){
-    #function to find implicit lambda
+    #implicit_lambda_function
     f <- function(lam){
+      #minimize _mse_given_constraint_over_betas_and_lam
       bi <- glmnet(y = targ, x = Zdm, lambda = lam, alpha = 0, intercept = FALSE, penalty.factor = D, standardize = FALSE)
       bi <- as.matrix(coef(bi))[-1,]
-      (crossprod(bi*D) - constraint)^2
+      bi <- mean((targ - Zdm %*% bi)^2) # targ_==_y
+      #mse_1 <- mean((targ - Zdm %*% c(parlist$beta_param, parlist$beta))^2 
+      return(bi)
     }
+
+    
     #optimize it
-    o <- optim(par = lam, fn = f, method = 'Brent', lower = lam, upper = 1e9)#fn=function_to_be_minimized
+    o <- optim(par = lam, fn = f, method = 'Brent', lower = lam, upper = 1e9) #fn=function_to_be_minimized
     #new_lambda
     newlam <- o$par
   } else {
