@@ -9,7 +9,7 @@ panelNNET.default <-
            , activation = 'tanh', doscale = TRUE
            , treatment = NULL, batchsize = nrow(X)
            , maxstopcounter = 10, OLStrick = FALSE
-           , OLStrick_iter = 10, initialization = 'enforce_normalization'
+           , OLStrick_iter = 1, OLStrick_wME = FALSE, initialization = 'enforce_normalization'
            , dropout_hidden = 1, dropout_input = 1, ...)
   {
     out <- panelNNET.est(y, X, hidden_units, fe_var, maxit, lam
@@ -17,7 +17,8 @@ panelNNET.default <-
                          , report_interval, gravity, convtol, bias_hlayers, RMSprop
                          , start_LR, activation, doscale 
                          , treatment, batchsize, maxstopcounter
-                         , OLStrick, OLStrick_iter, initialization, dropout_hidden, dropout_input
+                         , OLStrick, OLStrick_iter, OLStrick_wME
+                         , initialization, dropout_hidden, dropout_input
     )
     out$call = match.call()
     class(out) <- 'panelNNET'

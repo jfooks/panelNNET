@@ -1,7 +1,7 @@
 panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, param, parapen, parlist
                           , verbose, para_plot, report_interval, gravity, convtol, bias_hlayers, RMSprop
                           , start_LR, activation, doscale, treatment, batchsize, maxstopcounter
-                          , OLStrick, OLStrick_iter,initialization, dropout_hidden, dropout_input){
+                          , OLStrick, OLStrick_iter, OLStrick_wME, initialization, dropout_hidden, dropout_input){
 
   
   #Define internal functions
@@ -24,8 +24,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
         plist$beta_treatment, plist$beta
       ))
-      if (!is.null(treatment)){
-        hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
+      if (!is.null(treatment)){        hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
         yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta) + fe
       } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta) + fe}
     }
@@ -63,7 +62,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     }
     
     
-    #with_OLS_trick
+    #with_OLS_trick_and_OLS_iter
     if ((!is.null(fe_var)) & (!is.null(param)) & (OLStrick == TRUE)){
       Zdm <- demeanlist(hlay[[length(hlay)]], list(fe_var))
       fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
@@ -315,11 +314,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
   
   
   
-  
-  
-  
-  
-  
+
   ###############
   #start iterating
   while(iter < maxit & stopcounter < maxstopcounter){
@@ -413,16 +408,17 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       pl <- unlist(parlist)
       #Update hidden layers
       hlayers <- calc_hlayers(parlist)
+     
       #OLS trick!
       #mid
-      if (OLStrick == TRUE & iter %% OLStrick_iter == 1000000) {
+      if (OLStrick == TRUE & OLStrick_iter == 1) {
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
                                      , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
         )
         pl <- unlist(parlist)
       }
       #Ols_trick_every_#_iterations
-      if (OLStrick == TRUE & iter %% OLStrick_iter == 0){
+      if (OLStrick == TRUE & iter %% OLStrick_iter == 0 & iter > 1){
         parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
                                      , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
         )
@@ -531,7 +527,9 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
   
   
   
-  #If trained with droput, weight the layers by expectations
+  
+  
+  #If trained with dropout, weight the layers by expectations
   if(dropout_hidden<1){
     for (i in nlayers:1){
       if (i == 1){
@@ -550,6 +548,7 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     hlayers <- calc_hlayers(parlist)
     yhat <- getYhat(unlist(parlist), hlay = hlayers)
   }
+  
   conv <- (iter<maxit)#Did we get convergence?
   if(is.null(fe_var)){
     fe_output <- NULL
@@ -561,6 +560,32 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
     ))
     fe_output <- data.frame(fe_var, fe)
   }
+  
+  
+  #run_one_last_iteration_with_OLS_trick
+  #makes_interactive_betas_visible
+  
+  if (OLStrick == TRUE & OLStrick_wME == FALSE & iter > 1 & (((iter < maxit) == FALSE | stopcounter < maxstopcounter) == FALSE))
+  {
+    parlist <- OLStrick_function(parlist = parlist, hidden_layers = hlayers, y = y
+                                 , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
+    )
+    pl <- unlist(parlist)
+  }
+
+  
+  
+  #run_one_last_iteration_with_OLS_trick_w/main_effects 
+  if (OLStrick == TRUE & OLStrick_wME == TRUE & iter > 1 & (((iter < maxit) == FALSE | stopcounter < maxstopcounter) == FALSE))
+  {
+    parlist <- OLStrick_function_2(parlist = parlist, hidden_layers = hlayers, y = y
+                                 , fe_var = fe_var, lam = lam, parapen = parapen, treatment = treatment
+    )
+    pl <- unlist(parlist)
+  }
+    
+
+
   output <- list(yhat = yhat, parlist = parlist, hidden_layers = hlayers
                  , fe = fe_output, converged = conv, mse = mse, loss = loss, lam = lam, time_var = time_var
                  , X = X, y = y, param = param, fe_var = fe_var, hidden_units = hidden_units, maxit = maxit
