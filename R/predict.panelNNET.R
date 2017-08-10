@@ -1,11 +1,11 @@
 predict.panelNNET <-
-function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE, numerical_jacobian = FALSE, parallel_jacobian = FALSE){
+function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = TRUE, tauhat = FALSE, numerical_jacobian = FALSE, parallel_jacobian = FALSE){
 
 # obj <- pnn
 # newX = z_1
 # fe.newX = id
 # new.param = Pterm
-# se.fit = FALSE
+# se.fit = TRUE
 # tauhat = FALSE
 # parallel_jacobian = FALSE
 # numerical_jacobian = FALSE
@@ -131,9 +131,9 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
     return(D)
   }
   if (is.null(obj$fe)){
-    yhat <- D %*% c(plist$beta_treatment, plist$beta_param, plist$beta[1:(tail(obj$hidden_units, n=1))]) + plist$beta_param
+    yhat <- D %*% c(parlist$beta_treatment, parlist$beta_param, parlist$beta[1:(tail(obj$hidden_units, n=1))]) + parlist$beta_param
   } else {
-    xpart <- D %*% c(plist$beta_treatment, plist$beta_param, plist$beta[1:(tail(obj$hidden_units, n=1))]) + plist$beta_param
+    xpart <- D %*% c(parlist$beta_treatment, parlist$beta_param, parlist$beta[1:(tail(obj$hidden_units, n=1))]) + parlist$beta_param
     nd <- data.frame(fe.newX, xpart, id = 1:length(fe.newX))       
     nd <- merge(nd, FEs_to_merge, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
     nd <- nd[order(nd$id),]
