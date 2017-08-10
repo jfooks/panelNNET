@@ -24,7 +24,8 @@ panelNNET.est <- function(y, X, hidden_units, fe_var, maxit, lam, time_var, para
       fe <- (y-ydm) - as.matrix(hlay[[length(hlay)]]-Zdm) %*% as.matrix(c(
         plist$beta_treatment, plist$beta
       ))
-      if (!is.null(treatment)){        hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
+      if (!is.null(treatment)){
+        hlay[[length(hidden_units)]] <- sweep(hlay[[length(hidden_units)]], 1, c(treatment), "*") #asserts_treatment_to_top_layer_only
         yhat <- (hlay[[length(hidden_units)]]) %*% c(plist$beta_treatment, plist$beta) + fe
       } else {yhat <- hlay[[length(hlay)]] %*% c(plist$beta) + fe}
     }
