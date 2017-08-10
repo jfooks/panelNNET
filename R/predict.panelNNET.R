@@ -1,16 +1,16 @@
 predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = TRUE, tauhat = FALSE, numerical_jacobian = FALSE, parallel_jacobian = FALSE){
 
-obj <- pnn
-newX = z_1
-fe.newX = id
-new.param = Pterm
-se.fit = TRUE
-new.treatment = T_1
-tauhat = FALSE
-parallel_jacobian = FALSE
-numerical_jacobian = FALSE
-return_toplayer = FALSE
+# obj <- pnn
+# newX = z_1
+# fe.newX = id
+# new.param = Pterm
+# se.fit = TRUE
+# new.treatment = T_1
+# tauhat = FALSE
+# parallel_jacobian = FALSE
+# numerical_jacobian = FALSE
+# return_toplayer = FALSE
 
   if (obj$activation == 'tanh'){
     activ <- tanh
