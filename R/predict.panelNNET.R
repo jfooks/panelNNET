@@ -2,12 +2,14 @@ predict.panelNNET <-
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = FALSE, tauhat = FALSE, numerical_jacobian = FALSE, parallel_jacobian = FALSE){
 
 # obj <- pnn
-# newX = Z[e,]
-# fe.newX = id[e]
-# new.param = P[e,, drop = FALSE]
-# se.fit = TRUE
-# parallel_jacobian = TRUE
+# newX = z_1
+# fe.newX = id
+# new.param = Pterm
+# se.fit = FALSE
+# tauhat = FALSE
+# parallel_jacobian = FALSE
 # numerical_jacobian = FALSE
+# return_toplayer = FALSE
 
   if (obj$activation == 'tanh'){
     activ <- tanh
@@ -106,6 +108,7 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
   if (obj$activation == 'lrelu'){
     activ <- lrelu
   }
+  
   parlist <- relist(pvec)
   if (obj$doscale == TRUE){
     D <- sweep(sweep(newX, 2, STATS = attr(obj$X, "scaled:center"), FUN = '-'), 2, STATS = attr(obj$X, "scaled:scale"), FUN = '/')
@@ -128,9 +131,9 @@ predfun <- function(pvec, obj, newX = NULL, fe.newX = NULL, new.param = NULL, ne
     return(D)
   }
   if (is.null(obj$fe)){
-    yhat <- D %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + plist$beta_param
+    yhat <- D %*% c(plist$beta_treatment, plist$beta_param, plist$beta[1:(tail(obj$hidden_units, n=1))]) + plist$beta_param
   } else {
-    xpart <- D %*% c(plist$beta_treatment, plist$beta_param, plist$beta) + plist$beta_param
+    xpart <- D %*% c(plist$beta_treatment, plist$beta_param, plist$beta[1:(tail(obj$hidden_units, n=1))]) + plist$beta_param
     nd <- data.frame(fe.newX, xpart, id = 1:length(fe.newX))       
     nd <- merge(nd, FEs_to_merge, by.x = 'fe.newX', by.y = 'fe_var', all.x = TRUE, sort = FALSE)
     nd <- nd[order(nd$id),]
