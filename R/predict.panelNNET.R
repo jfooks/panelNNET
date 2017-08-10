@@ -1,4 +1,4 @@
-predict.panelNNET <-
+predict.panelNNET <- 
 function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NULL, se.fit = TRUE, tauhat = FALSE, numerical_jacobian = FALSE, parallel_jacobian = FALSE){
 
 # obj <- pnn
@@ -46,7 +46,7 @@ function(obj, newX = NULL, fe.newX = NULL, new.param = NULL, new.treatment = NUL
       stop('HTEs are depricated, and would need major attention to be rebuilt')
     } else { #if tauhat !=TRUE
       yhat <- predfun(pvec = pvec, obj = obj, newX = newX, fe.newX = fe.newX
-        , new.param = new.param, new.treatment = NULL, FEs_to_merge = FEs_to_merge)
+        , new.param = new.param, new.treatment = new.treatment, FEs_to_merge = FEs_to_merge)
       if (se.fit == FALSE){
         return(yhat)
       } else {
